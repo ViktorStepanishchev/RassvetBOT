@@ -2,7 +2,6 @@ from aiogram.types import CallbackQuery, Message
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 
-import base
 import text
 from base import cursor, db
 from states import edit_ank

@@ -6,9 +6,6 @@ import base
 import text
 import kb
 from states import Anketa
-from base import cursor, db
-
-from base import (delete_user)
 
 router_registration = Router()
 

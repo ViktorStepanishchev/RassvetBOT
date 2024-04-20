@@ -3,8 +3,9 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
+import base
 import text
-from base import cursor, db
+from base import cursor
 
 import kb
 
@@ -35,8 +36,6 @@ async def f_back_to_main(callback:CallbackQuery):
 @router_handlers.callback_query(F.data == "back_to_main2") #Вернуться в главное меню после прерывания заполнения анкеты
 async def f_back_to_main2(callback:CallbackQuery, state: FSMContext):
     await state.clear()
-    cursor.execute("""DELETE FROM data_users WHERE id = (?)""", (callback.from_user.id,))
-    db.commit()
     await callback.message.edit_text(text.description, reply_markup=kb.start_kb)
 
 @router_handlers.callback_query(F.data == "back_to_main_after_done_anketa") #Вернуться в главное меню после просмотра анкеты

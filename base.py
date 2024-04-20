@@ -14,10 +14,6 @@ def create_db():
         )""")
     db.commit()
 
-def delete_user(user_id: int) -> None:
-    cursor.execute("""DELETE FROM data_users WHERE id = (?)""", (user_id,))
-    db.commit()
-
 def add_user(user_id: int, data, username) -> None:
     name = data.get('name')
     occupation = data.get('occupation')
