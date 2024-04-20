@@ -2,6 +2,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 
+import base
 import text
 from base import cursor, db
 from states import edit_ank
@@ -20,13 +21,9 @@ async def f_join(callback: CallbackQuery, state: FSMContext):
 @router_edit.message(edit_ank.name)
 async def get_name(message: Message, state: FSMContext):
     if message.text == None:
-
         await message.answer(text.q_err_name, reply_markup=kb.individual_for_edit_anketa)
     else:
         if message.text == text.leave_it_as_it_was:
-
-            name = list(cursor.execute(f"SELECT name FROM data_users WHERE id = (?)", (message.from_user.id,)).fetchone())[0]
-            await state.update_data(name=name)
             await message.answer(text.q_occupation, reply_markup=kb.individual_for_edit_anketa)
             await state.set_state(edit_ank.occupation)
         else:
@@ -45,9 +42,6 @@ async def get_occupation(message: Message, state: FSMContext):
         await message.answer(text.q_err_occupation, reply_markup=kb.individual_for_edit_anketa)
     else:
         if message.text == text.leave_it_as_it_was:
-
-            occupation = list(cursor.execute(f"SELECT occupation FROM data_users WHERE id = (?)", (message.from_user.id,)).fetchone())[0]
-            await state.update_data(occupation=occupation)
             await message.answer(text.q_education, reply_markup=kb.individual_for_edit_anketa)
             await state.set_state(edit_ank.education)
         else:
@@ -65,9 +59,6 @@ async def get_education(message: Message, state: FSMContext):
         await message.answer(text.q_err_education, reply_markup=kb.individual_for_edit_anketa)
     else:
         if message.text == text.leave_it_as_it_was:
-
-            education = list(cursor.execute(f"SELECT education FROM data_users WHERE id = (?)", (message.from_user.id,)).fetchone())[0]
-            await state.update_data(education=education)
             await message.answer(text.q_about, reply_markup=kb.individual_for_edit_anketa)
             await state.set_state(edit_ank.about)
         else:
@@ -86,9 +77,6 @@ async def get_about(message: Message, state: FSMContext):
         await message.answer(text.q_err_about, reply_markup=kb.individual_for_edit_anketa)
     else:
         if message.text == text.leave_it_as_it_was:
-
-            about = list(cursor.execute(f"SELECT about FROM data_users WHERE id = (?)", (message.from_user.id,)).fetchone())[0]
-            await state.update_data(about=about)
             await message.answer(text.q_photo, reply_markup=kb.individual_for_edit_anketa)
             await state.set_state(edit_ank.photo)
         else:
@@ -123,8 +111,6 @@ async def get_photo_and_output_edit_ank(message: Message, state: FSMContext):
 
     else:
         if message.text == text.leave_it_as_it_was:
-            photo = list(cursor.execute(f"SELECT photo FROM data_users WHERE id = (?)", (message.from_user.id,)).fetchone())[0]
-            await state.update_data(photo=photo)
             await state.clear()
             await message.answer(text.redacted, reply_markup=kb.after_reg_kb)
         else:
