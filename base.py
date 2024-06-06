@@ -22,3 +22,12 @@ def add_user(user_id: int, data, username) -> None:
     photo = data.get('photo')
     cursor.execute("INSERT INTO data_users VALUES (?, ?, ?, ?, ?, ?, ?)", (user_id, name, occupation, education, about, photo, username))
     db.commit()
+
+def update_user(user_id: int, data) -> None:
+    name = data.get('name')
+    occupation = data.get('occupation')
+    education = data.get('education')
+    about = data.get('about')
+    photo = data.get('photo')
+    cursor.execute("""UPDATE data_users SET name = ?, occupation = ?, education = ?, about = ?, photo = ? WHERE id = (?)""", (name, occupation, education, about, photo, user_id))
+    db.commit()

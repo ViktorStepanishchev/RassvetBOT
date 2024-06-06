@@ -8,6 +8,7 @@ import text
 from base import cursor
 
 import kb
+from base import db
 
 router_handlers = Router()
 flag_media_id = None
@@ -49,7 +50,11 @@ async def f_back_to_main_after_done_anketa(callback:CallbackQuery):
 
 @router_handlers.callback_query(F.data == "discription") #Подробнее
 async def f_discription(callback: CallbackQuery):
-    await callback.message.edit_text(text.more_description, reply_markup=kb.back_to_main_kb)
+    cursor.execute("""SELECT id FROM data_users WHERE id = (?)""", (callback.from_user.id,))
+    if cursor.fetchone() is None:
+        await callback.message.edit_text(text.more_description, reply_markup=kb.back_to_main_kb_descr)
+    else:
+        await callback.message.edit_text(text.more_description, reply_markup=kb.back_to_main_kb)
 
 
 @router_handlers.callback_query(F.data == "user_anketa") #Просмотр своей анкеты пользователем
@@ -62,9 +67,13 @@ async def f_user_anketa(callback: CallbackQuery):
     photo = list(cursor.execute(f"SELECT photo FROM data_users WHERE id = (?)", (callback.from_user.id,)).fetchone())[0]
     username = callback.from_user.username
 
-    await callback.message.answer_photo(photo,
-text.ank1 + '\n' + '\n' + text.ank2 + name + '\n' + text.ank3 + occupation + '\n' + text.ank4 + education + '\n' + '\n'
-+ text.ank5 + '\n' + '\n' + about + '\n' + '\n' + "@"+username, reply_markup=kb.back_to_main_after_done_anketa_kb)
+    if photo is not None:
+        await callback.message.answer_photo(photo,
+    text.ank1 + '\n' + '\n' + text.ank2 + name + '\n' + text.ank3 + occupation + '\n' + text.ank4 + education + '\n' + '\n'
+    + text.ank5 + '\n' + '\n' + about + '\n' + '\n' + "@"+username, reply_markup=kb.back_to_main_after_done_anketa_kb)
+    else:
+        await callback.message.answer(text.ank1 + '\n' + '\n' + text.ank2 + name + '\n' + text.ank3 + occupation + '\n' + text.ank4 + education + '\n' + '\n'
+    + text.ank5 + '\n' + '\n' + about + '\n' + '\n' + "@"+username, reply_markup=kb.back_to_main_after_done_anketa_kb)
 
 
 
@@ -77,29 +86,42 @@ async def f_user_anketa1(callback:CallbackQuery):
 async def f_get_chat(callback:CallbackQuery):
     await callback.message.edit_text(text.after_get_chat, reply_markup=kb.individual_for_get_chat_kb)
 
+@router_handlers.callback_query(F.data == "delete_ank") #Удаление анкеты
+async def delete_ank(callback:CallbackQuery):
+    cursor.execute("DELETE FROM data_users WHERE id = (?)", (callback.from_user.id,))
+    await callback.message.edit_text(text.after_delete_anketa, reply_markup=kb.back_to_main_kb)
+    db.commit()
 
 @router_handlers.callback_query(F.data == "info_users")
 async def f_info_users(callback: CallbackQuery):
     users = ""
 
     for name in cursor.execute("SELECT username FROM data_users"):
-        users += "@" + name[0] + "\n"
+        occupation = cursor.execute("""SELECT occupation FROM data_users WHERE id = (?)""", (callback.from_user.id,)).fetchone()[0]
+        if occupation is not None:
+            users += "@" + name[0] + " (" + "<b>"+str(occupation)+"</b>" + ")" + "\n"
+        else:
+            users += "@" + name[0] + "\n"
+
 
     await callback.message.edit_text(text.list_users + "\n" + "\n" + users, reply_markup=kb.back_to_main_kb)
 
 
 @router_handlers.message(Command("info")) #Пробив по никнейму ТГ
 async def f_get_info_another_user(message: Message):
-    cursor.execute("SELECT photo FROM data_users WHERE id = (?)", (message.from_user.id,))
-    if cursor.fetchone() is None:
-        await message.answer(text.description, reply_markup=kb.start_kb)
-    else:
+
         username = message.text[7:]
         if cursor.execute("SELECT username FROM data_users WHERE username = ?", (username,)).fetchone() is not None:
             info = cursor.execute(f"SELECT * FROM data_users WHERE username = ?", (username,)).fetchone()
 
+            if info[5] is not None:
+                await message.answer_photo(info[5], '\n' + text.ank2 + info[1] + '\n' + text.ank3 + info[2] + '\n'
+                        + text.ank4 + info[3] + '\n' + '\n'+ text.ank5 + '\n' + '\n' + info[4] + '\n' + '\n' + "@"+username, reply_markup=kb.back_to_main_kb)
+            else:
+                await message.answer(text.ank2 + info[1] + '\n' + text.ank3 + info[2] + '\n'
+                                           + text.ank4 + info[3] + '\n' + '\n' + text.ank5 + '\n' + '\n' + info[
+                                               4] + '\n' + '\n' + "@" + username,
+                                           reply_markup=kb.back_to_main_kb)
 
-            await message.answer_photo(info[5], '\n' + text.ank2 + info[1] + '\n' + text.ank3 + info[2] + '\n'
-+ text.ank4 + info[3] + '\n' + '\n'+ text.ank5 + '\n' + '\n' + info[4] + '\n' + '\n' + "@"+username, reply_markup=kb.back_to_main_after_done_anketa_kb)
         else:
             await message.answer(text.no_user_in_list, reply_markup=kb.back_to_main_kb)
