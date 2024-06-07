@@ -77,6 +77,11 @@ async def get_about(message: Message, state: FSMContext):
 async def get_photo_and_output_anketa(message: Message, state: FSMContext):
     if message.text == text.skip:
         await state.update_data(photo=None)
+        data = await state.get_data()
+        username = message.from_user.username
+        base.add_user(message.from_user.id, data, username)
+        await message.answer(text.get_anketa, reply_markup=kb.after_reg_kb)
+        await state.clear()
     else:
         global flag_media_id
         if message.photo:
@@ -87,12 +92,11 @@ async def get_photo_and_output_anketa(message: Message, state: FSMContext):
                 if not message.media_group_id:
                     flag_media_id = None
                     await state.update_data(photo = message.photo[-1].file_id)
+                    data = await state.get_data()
+                    username = message.from_user.username
+                    base.add_user(message.from_user.id, data, username)
+                    await message.answer(text.get_anketa, reply_markup=kb.after_reg_kb)
+                    await state.clear()
 
         else:
             await message.answer(text.q_err_photo, reply_markup=kb.back_to_main_kb2)
-
-    data = await state.get_data()
-    username = message.from_user.username
-    base.add_user(message.from_user.id, data, username)
-    await message.answer(text.get_anketa, reply_markup=kb.after_reg_kb)
-    await state.clear()

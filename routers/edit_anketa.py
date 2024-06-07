@@ -102,26 +102,30 @@ async def get_about(message: Message, state: FSMContext):
 flag_media_id = None
 @router_edit.message(edit_ank.photo)
 async def get_photo_and_output_edit_ank(message: Message, state: FSMContext):
-    if message.text == text.skip:
-        await state.update_data(photo=None)
-    if message.text == text.leave_it_as_it_was:
-        await state.update_data(photo=cursor.execute("""SELECT photo FROM data_users WHERE id = ?""", (message.from_user.id,)).fetchone()[0])
-    else:
-        global flag_media_id
-        if message.photo:
-            if message.media_group_id and not flag_media_id:
-                flag_media_id = message.media_group_id
-
-                await message.answer(text.alotphoto, reply_markup=kb.individual_for_edit_anketa)
-
-            else:
-                if not message.media_group_id:
-                    flag_media_id = None
-                    await state.update_data(photo=message.photo[-1].file_id)
+    global flag_media_id
+    if message.photo:
+        if message.media_group_id and not flag_media_id:
+            flag_media_id = message.media_group_id
+            await message.answer(text.alotphoto, reply_markup=kb.back_to_main_kb2)
         else:
-            await message.answer(text.q_err_photo, reply_markup=kb.back_to_main_kb2)
-    data = await state.get_data()
-
-    update_user(message.from_user.id, data)
-    await state.clear()
-    await message.answer(text.redacted, reply_markup=kb.after_reg_kb)
+            if not message.media_group_id:
+                flag_media_id = None
+                await state.update_data(photo=message.photo[-1].file_id)
+                data = await state.get_data()
+                update_user(message.from_user.id, data)
+                await state.clear()
+                await message.answer(text.redacted, reply_markup=kb.after_reg_kb)
+    elif message.text == text.skip:
+        await state.update_data(photo=None)
+        data = await state.get_data()
+        update_user(message.from_user.id, data)
+        await state.clear()
+        await message.answer(text.redacted, reply_markup=kb.after_reg_kb)
+    elif message.text == text.leave_it_as_it_was:
+        await state.update_data(photo=cursor.execute("""SELECT photo FROM data_users WHERE id = ?""", (message.from_user.id,)).fetchone()[0])
+        data = await state.get_data()
+        update_user(message.from_user.id, data)
+        await state.clear()
+        await message.answer(text.redacted, reply_markup=kb.after_reg_kb)
+    else:
+        await message.answer(text.q_err_photo, reply_markup=kb.back_to_main_kb2)
