@@ -3,7 +3,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 
 import text
-from base import cursor, db, update_user
+from base import cursor, update_user
 from states import edit_ank
 
 import kb

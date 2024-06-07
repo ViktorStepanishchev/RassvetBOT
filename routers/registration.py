@@ -6,6 +6,7 @@ import base
 import text
 import kb
 from states import Anketa
+flag_media_id = None
 
 router_registration = Router()
 
